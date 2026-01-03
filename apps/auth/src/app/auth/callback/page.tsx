@@ -1,8 +1,9 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import { Card } from "@repo/ui/card";
+import { Spinner } from "@repo/ui/spinner";
 import {
   exchangeCodeForTokens,
   parseJwt,
@@ -11,7 +12,7 @@ import {
 } from "@repo/auth-lib";
 import type { User } from "@repo/types";
 
-export default function AuthCallbackPage() {
+function AuthCallbackContent() {
   const searchParams = useSearchParams();
   const { loginWithTokens } = useAuth();
   const [error, setError] = useState<string | null>(null);
@@ -122,4 +123,12 @@ export default function AuthCallbackPage() {
   }
 
   return null;
+}
+
+export default function AuthCallbackPage() {
+  return (
+    <Suspense fallback={<div className="flex justify-center items-center min-h-[60vh]"><Spinner size="lg" /></div>}>
+      <AuthCallbackContent />
+    </Suspense>
+  );
 }

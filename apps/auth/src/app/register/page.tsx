@@ -1,15 +1,16 @@
 "use client";
 
-import { useState } from "react";
+import { useState, Suspense } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { Card } from "@repo/ui/card";
 import { Button } from "@repo/ui/button";
 import { Input } from "@repo/ui/input";
+import { Spinner } from "@repo/ui/spinner";
 import { createUser } from "@repo/api-client";
 import { redirectToRegister } from "@repo/auth-lib";
 
-export default function RegisterPage() {
+function RegisterForm() {
   const searchParams = useSearchParams();
   const returnUrl = searchParams.get("returnUrl") || "/";
   const [formData, setFormData] = useState({
@@ -17,8 +18,8 @@ export default function RegisterPage() {
     email: "",
     password: "",
     confirmPassword: "",
-    fullName: "",
-    bio: "",
+    firstName: "",
+    lastName: "",
   });
   const [error, setError] = useState("");
   const [success, setSuccess] = useState(false);
@@ -52,8 +53,8 @@ export default function RegisterPage() {
         username: formData.username,
         email: formData.email,
         password: formData.password,
-        fullName: formData.fullName || undefined,
-        bio: formData.bio || undefined,
+        firstName: formData.firstName,
+        lastName: formData.lastName,
       });
 
       if (response.success) {
@@ -124,13 +125,24 @@ export default function RegisterPage() {
           required
         />
 
-        <Input
-          name="fullName"
-          label="Full Name"
-          placeholder="Enter your full name (optional)"
-          value={formData.fullName}
-          onChange={handleChange}
-        />
+        <div className="grid grid-cols-2 gap-4">
+          <Input
+            name="firstName"
+            label="First Name"
+            placeholder="First name"
+            value={formData.firstName}
+            onChange={handleChange}
+            required
+          />
+          <Input
+            name="lastName"
+            label="Last Name"
+            placeholder="Last name"
+            value={formData.lastName}
+            onChange={handleChange}
+            required
+          />
+        </div>
 
         <Input
           type="password"
@@ -193,5 +205,13 @@ export default function RegisterPage() {
         </p>
       </div>
     </Card>
+  );
+}
+
+export default function RegisterPage() {
+  return (
+    <Suspense fallback={<div className="flex justify-center items-center min-h-[60vh]"><Spinner size="lg" /></div>}>
+      <RegisterForm />
+    </Suspense>
   );
 }

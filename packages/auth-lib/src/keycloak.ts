@@ -224,6 +224,7 @@ export async function redirectToRegister(returnUrl?: string): Promise<void> {
 export function parseJwt(token: string): Record<string, unknown> {
   try {
     const base64Url = token.split(".")[1];
+    if (!base64Url) return {};
     const base64 = base64Url.replace(/-/g, "+").replace(/_/g, "/");
     const jsonPayload = decodeURIComponent(
       atob(base64)

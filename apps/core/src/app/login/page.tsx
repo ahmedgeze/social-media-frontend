@@ -1,11 +1,12 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { Card } from "@repo/ui/card";
 import { Button } from "@repo/ui/button";
 import { Input } from "@repo/ui/input";
+import { Spinner } from "@repo/ui/spinner";
 import {
   directLogin,
   parseJwt,
@@ -17,7 +18,7 @@ import {
 } from "@repo/auth-lib";
 import type { User } from "@repo/types";
 
-export default function LoginPage() {
+function LoginForm() {
   const searchParams = useSearchParams();
   const returnUrl = searchParams.get("returnUrl") || "/";
 
@@ -132,5 +133,13 @@ export default function LoginPage() {
         </div>
       </Card>
     </div>
+  );
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense fallback={<div className="flex justify-center items-center min-h-[60vh]"><Spinner size="lg" /></div>}>
+      <LoginForm />
+    </Suspense>
   );
 }

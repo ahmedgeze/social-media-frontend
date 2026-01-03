@@ -1,12 +1,13 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { Card } from "@repo/ui/card";
 import { Button } from "@repo/ui/button";
+import { Spinner } from "@repo/ui/spinner";
 
-export default function VerifyEmailPage() {
+function VerifyEmailContent() {
   const searchParams = useSearchParams();
   const success = searchParams.get("success");
   const [status, setStatus] = useState<"loading" | "success" | "error">("loading");
@@ -73,5 +74,13 @@ export default function VerifyEmailPage() {
         </div>
       </Card>
     </div>
+  );
+}
+
+export default function VerifyEmailPage() {
+  return (
+    <Suspense fallback={<div className="flex justify-center items-center min-h-[60vh]"><Spinner size="lg" /></div>}>
+      <VerifyEmailContent />
+    </Suspense>
   );
 }

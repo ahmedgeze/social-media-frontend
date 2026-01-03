@@ -6,8 +6,8 @@ import { Card } from "@repo/ui/card";
 
 interface UserSelectorProps {
   users: User[];
-  selectedUserId: number | null;
-  onSelect: (userId: number) => void;
+  selectedUserId: string | null;
+  onSelect: (userId: string) => void;
 }
 
 export default function UserSelector({

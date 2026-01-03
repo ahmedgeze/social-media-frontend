@@ -27,3 +27,12 @@ export async function updateUser(
     body: JSON.stringify(data),
   });
 }
+
+export async function createUser(
+  data: CreateUserRequest
+): Promise<ApiResponse<User>> {
+  return fetchApi('/api/users/register', {
+    method: 'POST',
+    body: JSON.stringify(data),
+  });
+}

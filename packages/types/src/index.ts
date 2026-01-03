@@ -18,20 +18,23 @@ export interface PageResponse<T> {
 
 // Domain types
 export interface User {
-  id: number;
+  id: string;
   username: string;
   email: string;
-  fullName: string | null;
-  bio: string | null;
-  profilePictureUrl: string | null;
+  displayName?: string;
+  firstName?: string;
+  lastName?: string;
+  bio?: string;
+  avatarUrl?: string;
   createdAt: string;
+  updatedAt?: string;
 }
 
 export interface Post {
-  id: number;
+  id: string;
   content: string;
-  imageUrl: string | null;
-  userId: number;
+  imageUrl?: string;
+  userId: string;
   username: string;
   likeCount: number;
   commentCount: number;
@@ -40,20 +43,20 @@ export interface Post {
 }
 
 export interface Comment {
-  id: number;
+  id: string;
   content: string;
-  userId: number;
+  userId: string;
   username: string;
-  postId: number;
+  postId: string;
   createdAt: string;
-  updatedAt: string;
+  updatedAt?: string;
 }
 
 export interface Like {
-  id: number;
-  userId: number;
+  id: string;
+  userId: string;
   username: string;
-  postId: number;
+  postId: string;
   createdAt: string;
 }
 
@@ -62,25 +65,17 @@ export interface CreateUserRequest {
   username: string;
   email: string;
   password: string;
-  fullName?: string;
-  bio?: string;
+  firstName: string;
+  lastName: string;
 }
 
 export interface CreatePostRequest {
   content: string;
   imageUrl?: string;
-  userId: number;
 }
 
 export interface CreateCommentRequest {
   content: string;
-  userId: number;
-  postId: number;
-}
-
-export interface LikeRequest {
-  userId: number;
-  postId: number;
 }
 
 // Auth types

@@ -7,7 +7,7 @@ import {
   unlikePost,
   getComments,
   createComment,
-  hasUserLiked,
+  hasUserLikedPost,
 } from "@repo/api-client";
 import { Card } from "@repo/ui/card";
 import { Button } from "@repo/ui/button";
@@ -16,7 +16,7 @@ import { Avatar } from "@repo/ui/avatar";
 
 interface PostCardProps {
   post: Post;
-  currentUserId: number;
+  currentUserId: string;
   onRefresh: () => void;
 }
 
@@ -33,14 +33,14 @@ export default function PostCard({
   const [loading, setLoading] = useState(false);
 
   const loadComments = async () => {
-    const res = await getComments(post.id);
+    const res = await getComments(String(post.id));
     if (res.success) {
-      setComments(res.data);
+      setComments(res.data.content);
     }
   };
 
   const checkLikeStatus = async () => {
-    const res = await hasUserLiked(currentUserId, post.id);
+    const res = await hasUserLikedPost(String(post.id));
     if (res.success) {
       setLiked(res.data);
     }
@@ -58,11 +58,11 @@ export default function PostCard({
     setLoading(true);
     try {
       if (liked) {
-        await unlikePost(currentUserId, post.id);
+        await unlikePost(String(post.id));
         setLiked(false);
         setLikeCount((prev) => prev - 1);
       } else {
-        await likePost({ userId: currentUserId, postId: post.id });
+        await likePost(String(post.id));
         setLiked(true);
         setLikeCount((prev) => prev + 1);
       }
@@ -76,11 +76,7 @@ export default function PostCard({
     e.preventDefault();
     if (!newComment.trim()) return;
 
-    const res = await createComment({
-      content: newComment,
-      userId: currentUserId,
-      postId: post.id,
-    });
+    const res = await createComment(String(post.id), { content: newComment });
 
     if (res.success) {
       setComments([res.data, ...comments]);

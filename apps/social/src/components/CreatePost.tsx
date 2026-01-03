@@ -7,7 +7,7 @@ import { Button } from "@repo/ui/button";
 import { Textarea } from "@repo/ui/textarea";
 
 interface CreatePostProps {
-  userId: number;
+  userId: string;
   onPostCreated: () => void;
 }
 
@@ -24,7 +24,7 @@ export default function CreatePost({ userId, onPostCreated }: CreatePostProps) {
     setError("");
 
     try {
-      const res = await createPost({ content, userId });
+      const res = await createPost({ content });
       if (res.success) {
         setContent("");
         onPostCreated();

@@ -13,7 +13,7 @@ import PostCard from "@/components/PostCard";
 export default function FeedPage() {
   const [posts, setPosts] = useState<Post[]>([]);
   const [users, setUsers] = useState<User[]>([]);
-  const [selectedUserId, setSelectedUserId] = useState<number | null>(null);
+  const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
@@ -87,7 +87,7 @@ export default function FeedPage() {
             <PostCard
               key={post.id}
               post={post}
-              currentUserId={selectedUserId || 0}
+              currentUserId={selectedUserId || ""}
               onRefresh={loadData}
             />
           ))}
