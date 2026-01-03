@@ -1,135 +1,264 @@
-# Turborepo starter
+# Social Media Frontend
 
-This Turborepo starter is maintained by the Turborepo core team.
+A micro-frontend architecture for social media application built with Turborepo, Next.js 16, React 19, and TypeScript.
 
-## Using this example
+## Architecture
 
-Run the following command:
-
-```sh
-npx create-turbo@latest
+```
+social-media-frontend/
+├── apps/
+│   ├── core/          # Shell app - layouts, 404/401/500 pages (Port 3000)
+│   ├── auth/          # Authentication - login, register, profile (Port 3001)
+│   └── social/        # Social features - feed, posts, comments, likes (Port 3002)
+├── packages/
+│   ├── ui/            # Shared UI components (Button, Card, Input, Avatar, Modal, Spinner)
+│   ├── api-client/    # Type-safe API client
+│   ├── types/         # Shared TypeScript types
+│   ├── auth-lib/      # Auth context, storage, route guards
+│   ├── eslint-config/ # Shared ESLint configuration
+│   └── typescript-config/ # Shared TypeScript configuration
+├── turbo.json
+└── package.json
 ```
 
-## What's inside?
+## Tech Stack
 
-This Turborepo includes the following packages/apps:
+- **Build Tool**: Turborepo 2.x
+- **Package Manager**: npm
+- **Framework**: Next.js 16 (App Router)
+- **Language**: TypeScript 5.x
+- **UI Library**: React 19
+- **Styling**: Tailwind CSS 4
+- **State Management**: React Context + hooks
 
-### Apps and Packages
+## Getting Started
 
-- `docs`: a [Next.js](https://nextjs.org/) app
-- `web`: another [Next.js](https://nextjs.org/) app
-- `@repo/ui`: a stub React component library shared by both `web` and `docs` applications
-- `@repo/eslint-config`: `eslint` configurations (includes `eslint-config-next` and `eslint-config-prettier`)
-- `@repo/typescript-config`: `tsconfig.json`s used throughout the monorepo
+### Prerequisites
 
-Each package/app is 100% [TypeScript](https://www.typescriptlang.org/).
+- Node.js 18+
+- npm 10+
 
-### Utilities
+### Installation
 
-This Turborepo has some additional tools already setup for you:
+```bash
+# Clone the repository
+git clone https://github.com/ahmedgeze/social-media-frontend.git
+cd social-media-frontend
 
-- [TypeScript](https://www.typescriptlang.org/) for static type checking
-- [ESLint](https://eslint.org/) for code linting
-- [Prettier](https://prettier.io) for code formatting
+# Install dependencies
+npm install
+```
+
+### Development
+
+```bash
+# Run all apps in development mode
+npm run dev
+
+# Run specific app
+npm run dev --filter=core
+npm run dev --filter=auth
+npm run dev --filter=social
+```
 
 ### Build
 
-To build all apps and packages, run the following command:
+```bash
+# Build all apps
+npm run build
 
-```
-cd my-turborepo
-
-# With [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation) installed (recommended)
-turbo build
-
-# Without [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation), use your package manager
-npx turbo build
-yarn dlx turbo build
-pnpm exec turbo build
+# Build specific app
+npm run build --filter=core
 ```
 
-You can build a specific package by using a [filter](https://turborepo.com/docs/crafting-your-repository/running-tasks#using-filters):
+### Ports
 
-```
-# With [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation) installed (recommended)
-turbo build --filter=docs
+| App    | Port | URL                    | Description              |
+|--------|------|------------------------|--------------------------|
+| Core   | 3000 | http://localhost:3000  | Shell app, home, errors  |
+| Auth   | 3001 | http://localhost:3001  | Login, register, profile |
+| Social | 3002 | http://localhost:3002  | Feed, posts, users       |
 
-# Without [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation), use your package manager
-npx turbo build --filter=docs
-yarn exec turbo build --filter=docs
-pnpm exec turbo build --filter=docs
-```
+## Kubernetes Deployment
 
-### Develop
+### Local Development with Minikube
 
-To develop all apps and packages, run the following command:
+#### Prerequisites
 
-```
-cd my-turborepo
+- [Minikube](https://minikube.sigs.k8s.io/docs/start/) installed
+- [kubectl](https://kubernetes.io/docs/tasks/tools/) installed
+- [Docker](https://docs.docker.com/get-docker/) installed
 
-# With [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation) installed (recommended)
-turbo dev
+#### Step 1: Start Minikube
 
-# Without [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation), use your package manager
-npx turbo dev
-yarn exec turbo dev
-pnpm exec turbo dev
+```bash
+minikube start
 ```
 
-You can develop a specific package by using a [filter](https://turborepo.com/docs/crafting-your-repository/running-tasks#using-filters):
+#### Step 2: Configure Docker to use Minikube's Docker daemon
 
-```
-# With [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation) installed (recommended)
-turbo dev --filter=web
-
-# Without [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation), use your package manager
-npx turbo dev --filter=web
-yarn exec turbo dev --filter=web
-pnpm exec turbo dev --filter=web
+```bash
+eval $(minikube docker-env)
 ```
 
-### Remote Caching
+#### Step 3: Create namespace
 
-> [!TIP]
-> Vercel Remote Cache is free for all plans. Get started today at [vercel.com](https://vercel.com/signup?/signup?utm_source=remote-cache-sdk&utm_campaign=free_remote_cache).
-
-Turborepo can use a technique known as [Remote Caching](https://turborepo.com/docs/core-concepts/remote-caching) to share cache artifacts across machines, enabling you to share build caches with your team and CI/CD pipelines.
-
-By default, Turborepo will cache locally. To enable Remote Caching you will need an account with Vercel. If you don't have an account you can [create one](https://vercel.com/signup?utm_source=turborepo-examples), then enter the following commands:
-
-```
-cd my-turborepo
-
-# With [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation) installed (recommended)
-turbo login
-
-# Without [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation), use your package manager
-npx turbo login
-yarn exec turbo login
-pnpm exec turbo login
+```bash
+kubectl create namespace social-media
 ```
 
-This will authenticate the Turborepo CLI with your [Vercel account](https://vercel.com/docs/concepts/personal-accounts/overview).
+#### Step 4: Build Docker images inside Minikube
 
-Next, you can link your Turborepo to your Remote Cache by running the following command from the root of your Turborepo:
-
-```
-# With [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation) installed (recommended)
-turbo link
-
-# Without [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation), use your package manager
-npx turbo link
-yarn exec turbo link
-pnpm exec turbo link
+```bash
+# Build all frontend images
+docker build -t social-media-core:latest -f apps/core/Dockerfile .
+docker build -t social-media-auth:latest -f apps/auth/Dockerfile .
+docker build -t social-media-social:latest -f apps/social/Dockerfile .
 ```
 
-## Useful Links
+#### Step 5: Deploy to Kubernetes
 
-Learn more about the power of Turborepo:
+```bash
+# Deploy frontend services
+kubectl apply -f k8s/frontend.yaml
 
-- [Tasks](https://turborepo.com/docs/crafting-your-repository/running-tasks)
-- [Caching](https://turborepo.com/docs/crafting-your-repository/caching)
-- [Remote Caching](https://turborepo.com/docs/core-concepts/remote-caching)
-- [Filtering](https://turborepo.com/docs/crafting-your-repository/running-tasks#using-filters)
-- [Configuration Options](https://turborepo.com/docs/reference/configuration)
-- [CLI Usage](https://turborepo.com/docs/reference/command-line-reference)
+# Deploy ingress
+kubectl apply -f k8s/ingress.yaml
+```
+
+#### Step 6: Verify deployment
+
+```bash
+kubectl get pods -n social-media
+kubectl get services -n social-media
+```
+
+#### Step 7: Access the application
+
+```bash
+# Port forward all services
+kubectl port-forward svc/core 3000:3000 -n social-media &
+kubectl port-forward svc/auth 3001:3001 -n social-media &
+kubectl port-forward svc/social 3002:3002 -n social-media &
+kubectl port-forward svc/backend 8080:8080 -n social-media &
+
+# Access the app
+open http://localhost:3000
+```
+
+### Full Stack Deployment
+
+Deploy the complete social media stack (PostgreSQL, Backend, Frontend):
+
+```bash
+# 1. Start Minikube
+minikube start
+
+# 2. Configure Docker
+eval $(minikube docker-env)
+
+# 3. Create namespace
+kubectl create namespace social-media
+
+# 4. Deploy PostgreSQL
+kubectl apply -f ../k8s/postgres.yaml
+
+# 5. Build and deploy backend
+cd ../backend/social-media-service
+docker build -t social-media-backend:latest .
+kubectl apply -f ../k8s/backend.yaml
+
+# 6. Build and deploy frontend
+cd ../../frontend/social-media-frontend
+docker build -t social-media-core:latest -f apps/core/Dockerfile .
+docker build -t social-media-auth:latest -f apps/auth/Dockerfile .
+docker build -t social-media-social:latest -f apps/social/Dockerfile .
+kubectl apply -f ../k8s/frontend.yaml
+
+# 7. Deploy ingress
+kubectl apply -f ../k8s/ingress.yaml
+
+# 8. Wait for pods
+kubectl wait --for=condition=ready pod -l app=core -n social-media --timeout=120s
+kubectl wait --for=condition=ready pod -l app=auth -n social-media --timeout=120s
+kubectl wait --for=condition=ready pod -l app=social -n social-media --timeout=120s
+
+# 9. Access via port-forward
+kubectl port-forward svc/core 3000:3000 -n social-media
+```
+
+## API Integration
+
+The frontend connects to the backend API at `http://backend:8080` inside Kubernetes or `http://localhost:8080` for local development.
+
+### Environment Variables
+
+| Variable              | Description        | Default                |
+|-----------------------|--------------------|------------------------|
+| `NEXT_PUBLIC_API_URL` | Backend API URL    | http://localhost:8080  |
+
+## Apps
+
+### Core App (`apps/core`)
+
+The shell application that provides:
+- Root layout with navigation header
+- Home/landing page
+- 404 Not Found page
+- 401 Unauthorized page
+- 500 Error page
+- Routing to other micro-frontends via Next.js rewrites
+
+### Auth App (`apps/auth`)
+
+Authentication module providing:
+- Login page (`/login`)
+- Registration page (`/register`)
+- User profile page (`/profile`)
+
+### Social App (`apps/social`)
+
+Social features module providing:
+- Feed page with posts (`/` or `/feed`)
+- User management (`/users`)
+- Post creation, likes, and comments
+
+## Packages
+
+### `@repo/ui`
+
+Shared UI components:
+- `Button` - Primary, secondary, danger, ghost variants
+- `Card` - Container component with header/title
+- `Input` - Form input with label and error states
+- `Textarea` - Multi-line input
+- `Avatar` - User avatar with initials fallback
+- `Modal` - Dialog component
+- `Spinner` - Loading indicator
+
+### `@repo/api-client`
+
+Type-safe API client with endpoints for:
+- Users (CRUD)
+- Posts (CRUD)
+- Comments (CRUD)
+- Likes (like/unlike)
+
+### `@repo/types`
+
+Shared TypeScript interfaces:
+- `User`, `Post`, `Comment`, `Like`
+- `ApiResponse<T>`, `PageResponse<T>`
+- Request types
+
+### `@repo/auth-lib`
+
+Authentication utilities:
+- `AuthProvider` - React context for auth state
+- `useAuth` - Hook for accessing auth state
+- `ProtectedRoute` - Route guard component
+- Token storage utilities
+
+## License
+
+MIT
