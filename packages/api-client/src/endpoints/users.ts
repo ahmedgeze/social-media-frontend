@@ -7,34 +7,23 @@ import type {
 } from '@repo/types';
 
 export async function getUsers(): Promise<ApiResponse<PageResponse<User>>> {
-  return fetchApi('/api/v1/users');
+  return fetchApi('/api/users');
 }
 
-export async function getUser(id: number): Promise<ApiResponse<User>> {
-  return fetchApi(`/api/v1/users/${id}`);
+export async function getUser(id: string): Promise<ApiResponse<User>> {
+  return fetchApi(`/api/users/${id}`);
 }
 
-export async function createUser(
-  data: CreateUserRequest
-): Promise<ApiResponse<User>> {
-  return fetchApi('/api/v1/users', {
-    method: 'POST',
-    body: JSON.stringify(data),
-  });
+export async function getCurrentUser(): Promise<ApiResponse<User>> {
+  return fetchApi('/api/users/me');
 }
 
 export async function updateUser(
-  id: number,
+  id: string,
   data: Partial<CreateUserRequest>
 ): Promise<ApiResponse<User>> {
-  return fetchApi(`/api/v1/users/${id}`, {
+  return fetchApi(`/api/users/${id}`, {
     method: 'PUT',
     body: JSON.stringify(data),
-  });
-}
-
-export async function deleteUser(id: number): Promise<ApiResponse<void>> {
-  return fetchApi(`/api/v1/users/${id}`, {
-    method: 'DELETE',
   });
 }

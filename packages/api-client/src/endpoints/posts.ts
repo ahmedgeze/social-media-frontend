@@ -7,40 +7,40 @@ import type {
 } from '@repo/types';
 
 export async function getPosts(): Promise<ApiResponse<PageResponse<Post>>> {
-  return fetchApi('/api/v1/posts');
+  return fetchApi('/api/posts');
 }
 
-export async function getPost(id: number): Promise<ApiResponse<Post>> {
-  return fetchApi(`/api/v1/posts/${id}`);
+export async function getPost(id: string): Promise<ApiResponse<Post>> {
+  return fetchApi(`/api/posts/${id}`);
 }
 
 export async function getUserPosts(
-  userId: number
+  userId: string
 ): Promise<ApiResponse<PageResponse<Post>>> {
-  return fetchApi(`/api/v1/posts/user/${userId}`);
+  return fetchApi(`/api/posts/user/${userId}`);
 }
 
 export async function createPost(
   data: CreatePostRequest
 ): Promise<ApiResponse<Post>> {
-  return fetchApi('/api/v1/posts', {
+  return fetchApi('/api/posts', {
     method: 'POST',
     body: JSON.stringify(data),
   });
 }
 
 export async function updatePost(
-  id: number,
+  id: string,
   data: Partial<CreatePostRequest>
 ): Promise<ApiResponse<Post>> {
-  return fetchApi(`/api/v1/posts/${id}`, {
+  return fetchApi(`/api/posts/${id}`, {
     method: 'PUT',
     body: JSON.stringify(data),
   });
 }
 
-export async function deletePost(id: number): Promise<ApiResponse<void>> {
-  return fetchApi(`/api/v1/posts/${id}`, {
+export async function deletePost(id: string): Promise<ApiResponse<void>> {
+  return fetchApi(`/api/posts/${id}`, {
     method: 'DELETE',
   });
 }
