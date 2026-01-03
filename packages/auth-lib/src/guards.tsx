@@ -6,21 +6,35 @@ import { useAuth } from "./context";
 interface ProtectedRouteProps {
   children: ReactNode;
   fallback?: ReactNode;
-  redirectTo?: string;
+  useKeycloakLogin?: boolean;
 }
 
 export function ProtectedRoute({
   children,
   fallback,
-  redirectTo = "/login",
+  useKeycloakLogin = true,
 }: ProtectedRouteProps) {
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, isLoading, login } = useAuth();
 
   useEffect(() => {
-    if (!isAuthenticated && typeof window !== "undefined") {
-      window.location.href = redirectTo;
+    if (!isLoading && !isAuthenticated && typeof window !== "undefined") {
+      if (useKeycloakLogin) {
+        login(window.location.pathname).catch(console.error);
+      } else {
+        window.location.href = `/login?returnUrl=${encodeURIComponent(window.location.pathname)}`;
+      }
     }
-  }, [isAuthenticated, redirectTo]);
+  }, [isAuthenticated, isLoading, login, useKeycloakLogin]);
+
+  if (isLoading) {
+    return (
+      fallback || (
+        <div className="flex items-center justify-center min-h-screen">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
+        </div>
+      )
+    );
+  }
 
   if (!isAuthenticated) {
     return fallback || null;
@@ -38,13 +52,21 @@ export function PublicOnlyRoute({
   children,
   redirectTo = "/",
 }: PublicOnlyRouteProps) {
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, isLoading } = useAuth();
 
   useEffect(() => {
-    if (isAuthenticated && typeof window !== "undefined") {
+    if (!isLoading && isAuthenticated && typeof window !== "undefined") {
       window.location.href = redirectTo;
     }
-  }, [isAuthenticated, redirectTo]);
+  }, [isAuthenticated, isLoading, redirectTo]);
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
+      </div>
+    );
+  }
 
   if (isAuthenticated) {
     return null;

@@ -6,8 +6,8 @@ const SOCIAL_URL = process.env.SOCIAL_SERVICE_URL || "http://localhost:3002";
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
-  // Auth app routes
-  if (pathname === "/login" || pathname === "/register" || pathname === "/profile") {
+  // Profile route - proxy to auth app
+  if (pathname === "/profile") {
     const targetUrl = `${AUTH_URL}${pathname}`;
     try {
       const response = await fetch(targetUrl, {
@@ -53,5 +53,5 @@ export async function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/login", "/register", "/profile", "/feed", "/users"],
+  matcher: ["/profile", "/feed", "/users"],
 };

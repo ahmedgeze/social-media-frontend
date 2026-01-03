@@ -31,9 +31,7 @@ export default function LoginPage() {
     const token = getToken();
     const user = getStoredUser();
     if (token && user) {
-      window.location.href = returnUrl.startsWith("/")
-        ? `http://localhost:3000${returnUrl}`
-        : returnUrl;
+      window.location.href = returnUrl;
     }
   }, [returnUrl]);
 
@@ -68,15 +66,12 @@ export default function LoginPage() {
         expiresIn: tokens.expires_in,
       };
 
-      // Store directly without context
+      // Store tokens and user
       setTokens(tokenBundle);
       setStoredUser(user);
 
-      // Redirect to core app
-      const redirectTo = returnUrl.startsWith("/")
-        ? `http://localhost:3000${returnUrl}`
-        : returnUrl;
-      window.location.href = redirectTo;
+      // Redirect
+      window.location.href = returnUrl;
     } catch (err) {
       setError(err instanceof Error ? err.message : "Login failed");
     } finally {
@@ -85,63 +80,57 @@ export default function LoginPage() {
   };
 
   return (
-    <Card className="w-full max-w-md">
-      <div className="text-center mb-6">
-        <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
-          Welcome Back
-        </h1>
-        <p className="text-gray-600 dark:text-gray-400 mt-1">
-          Sign in to your account
-        </p>
-      </div>
+    <div className="min-h-[60vh] flex items-center justify-center">
+      <Card className="w-full max-w-md">
+        <div className="text-center mb-6">
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
+            Welcome Back
+          </h1>
+          <p className="text-gray-600 dark:text-gray-400 mt-1">
+            Sign in to your account
+          </p>
+        </div>
 
-      <form onSubmit={handleSubmit} className="space-y-4">
-        <Input
-          type="text"
-          label="Username or Email"
-          placeholder="Enter your username or email"
-          value={username}
-          onChange={(e) => setUsername(e.target.value)}
-          required
-        />
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <Input
+            type="text"
+            label="Username or Email"
+            placeholder="Enter your username or email"
+            value={username}
+            onChange={(e) => setUsername(e.target.value)}
+            required
+          />
 
-        <Input
-          type="password"
-          label="Password"
-          placeholder="Enter your password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          required
-        />
+          <Input
+            type="password"
+            label="Password"
+            placeholder="Enter your password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            required
+          />
 
-        {error && (
-          <p className="text-red-500 text-sm text-center">{error}</p>
-        )}
+          {error && (
+            <p className="text-red-500 text-sm text-center">{error}</p>
+          )}
 
-        <Button type="submit" className="w-full" loading={loading}>
-          Sign In
-        </Button>
-      </form>
+          <Button type="submit" className="w-full" loading={loading}>
+            Sign In
+          </Button>
+        </form>
 
-      <div className="mt-6 text-center space-y-2">
-        <p className="text-gray-600 dark:text-gray-400 text-sm">
-          Don&apos;t have an account?{" "}
-          <Link
-            href={`/register?returnUrl=${encodeURIComponent(returnUrl)}`}
-            className="text-blue-500 hover:text-blue-600 font-medium"
-          >
-            Sign up
-          </Link>
-        </p>
-        <p className="text-gray-500 text-sm">
-          <Link
-            href="/forgot-password"
-            className="text-blue-500 hover:text-blue-600"
-          >
-            Forgot password?
-          </Link>
-        </p>
-      </div>
-    </Card>
+        <div className="mt-6 text-center space-y-2">
+          <p className="text-gray-600 dark:text-gray-400 text-sm">
+            Don&apos;t have an account?{" "}
+            <Link
+              href={`/register?returnUrl=${encodeURIComponent(returnUrl)}`}
+              className="text-blue-500 hover:text-blue-600 font-medium"
+            >
+              Sign up
+            </Link>
+          </p>
+        </div>
+      </Card>
+    </div>
   );
 }

@@ -40,7 +40,15 @@ Core app diğer uygulamalara middleware ile proxy yapar:
 |-------|------------|------|
 | `/` | core | 3000 |
 | `/login`, `/register`, `/profile` | auth | 3001 |
+| `/verify-email` | core | 3000 |
 | `/feed`, `/users` | social | 3002 |
+
+### Email Verification Page
+
+`apps/core/src/app/verify-email/page.tsx` - Email doğrulama sonrası gösterilen sayfa:
+- Keycloak email verification sonrası buraya redirect olur
+- `?success=true` query param ile başarı durumu kontrol edilir
+- Kullanıcıya başarı mesajı ve login'e yönlendirme butonu gösterilir
 
 ### Kubernetes Service Discovery
 ```
@@ -65,13 +73,18 @@ apps/social   → @repo/ui, @repo/types, @repo/api-client, @repo/auth-lib
 | `apps/*/next.config.ts` | Next.js app configs |
 | `apps/core/src/middleware.ts` | Micro-frontend routing proxy |
 
-## Development
+## Local Development
 
+### Prerequisites
+- Node.js 20+
+- npm 10+
+
+### Install & Run
 ```bash
 # Install dependencies
 npm install
 
-# Run all apps
+# Run all apps (parallel)
 npm run dev
 
 # Run specific app
@@ -84,6 +97,34 @@ npm run build
 
 # Lint all
 npm run lint
+```
+
+### Access URLs (Local)
+| App | URL | Description |
+|-----|-----|-------------|
+| Core | http://localhost:3000 | Shell app, routing |
+| Auth | http://localhost:3001 | Login, register, profile |
+| Social | http://localhost:3002 | Feed, posts, users |
+
+### Connect to Backend
+```bash
+# Set backend URL (default: http://localhost:8080)
+NEXT_PUBLIC_API_URL=http://localhost:8080 npm run dev
+```
+
+### Development Tips
+```bash
+# Watch mode with turbo cache
+npm run dev
+
+# Clear turbo cache if issues
+npx turbo clean
+
+# Add package to specific app
+npm install axios --workspace=apps/auth
+
+# Add shared package dependency
+npm install zod --workspace=packages/types
 ```
 
 ## Docker Build

@@ -2,7 +2,7 @@
 
 ## Overview
 
-Authentication state management, token storage ve protected route utilities sağlayan paylaşılan kütüphane.
+Keycloak OAuth2/OIDC entegrasyonlu authentication state management, token storage ve protected route utilities sağlayan paylaşılan kütüphane.
 
 ## Package Info
 
@@ -19,17 +19,25 @@ Authentication state management, token storage ve protected route utilities sağ
 ```
 packages/auth-lib/
 ├── src/
-│   ├── context/
-│   │   └── AuthContext.tsx   # React context provider
-│   ├── hooks/
-│   │   └── useAuth.ts        # Auth hook
-│   ├── storage/
-│   │   └── tokenStorage.ts   # Token persistence
-│   ├── components/
-│   │   └── ProtectedRoute.tsx
-│   └── index.ts
+│   ├── context.tsx      # React AuthProvider + useAuth hook
+│   ├── storage.ts       # Token persistence (access, refresh, id tokens)
+│   ├── guards.tsx       # ProtectedRoute, PublicOnlyRoute
+│   ├── keycloak.ts      # Keycloak PKCE auth flow
+│   └── index.ts         # Public exports
 ├── package.json
 └── tsconfig.json
+```
+
+## Keycloak Integration
+
+```typescript
+// Environment variables
+NEXT_PUBLIC_KEYCLOAK_URL=http://localhost:8180
+NEXT_PUBLIC_KEYCLOAK_REALM=social-media
+NEXT_PUBLIC_KEYCLOAK_CLIENT_ID=social-media-frontend
+
+// Keycloak config
+import { keycloakConfig, keycloakEndpoints } from "@repo/auth-lib";
 ```
 
 ## AuthContext
@@ -37,10 +45,14 @@ packages/auth-lib/
 ```typescript
 interface AuthContextType {
   user: User | null;
+  token: string | null;
   isAuthenticated: boolean;
   isLoading: boolean;
-  login: (user: User) => void;
-  logout: () => void;
+  login: (returnUrl?: string) => void;           // Redirect to Keycloak
+  loginWithTokens: (tokens: TokenBundle, user: User) => void;
+  logout: () => void;                            // Clear + Keycloak logout
+  setUser: (user: User) => void;
+  refreshAuth: () => Promise<boolean>;           // Refresh tokens
 }
 
 // Provider wraps app
@@ -55,10 +67,12 @@ interface AuthContextType {
 import { useAuth } from "@repo/auth-lib";
 
 function MyComponent() {
-  const { user, isAuthenticated, login, logout } = useAuth();
+  const { user, isAuthenticated, isLoading, login, logout } = useAuth();
+
+  if (isLoading) return <Spinner />;
 
   if (!isAuthenticated) {
-    return <LoginPrompt />;
+    return <button onClick={() => login()}>Login with Keycloak</button>;
   }
 
   return (
@@ -73,21 +87,35 @@ function MyComponent() {
 ## Token Storage
 
 ```typescript
-// Persists to localStorage
-const storage = {
-  getUser: (): User | null => {
-    const data = localStorage.getItem("auth_user");
-    return data ? JSON.parse(data) : null;
-  },
+import {
+  getToken,           // Access token
+  getRefreshToken,    // Refresh token
+  getIdToken,         // ID token
+  setTokens,          // Set all tokens at once
+  isTokenExpired,     // Check if access token expired
+  clearAuth,          // Clear all auth data
+} from "@repo/auth-lib";
 
-  setUser: (user: User): void => {
-    localStorage.setItem("auth_user", JSON.stringify(user));
-  },
+// Token bundle type
+interface TokenBundle {
+  accessToken: string;
+  refreshToken: string;
+  idToken: string;
+  expiresIn: number;
+}
+```
 
-  removeUser: (): void => {
-    localStorage.removeItem("auth_user");
-  },
-};
+## Keycloak Functions
+
+```typescript
+import {
+  redirectToLogin,       // PKCE login redirect
+  redirectToLogout,      // Keycloak logout
+  redirectToRegister,    // Keycloak registration
+  exchangeCodeForTokens, // Exchange auth code for tokens
+  refreshTokens,         // Refresh access token
+  parseJwt,              // Parse JWT payload
+} from "@repo/auth-lib";
 ```
 
 ## ProtectedRoute
@@ -95,85 +123,79 @@ const storage = {
 ```typescript
 import { ProtectedRoute } from "@repo/auth-lib";
 
-// Redirects to /login if not authenticated
+// Redirects to Keycloak login if not authenticated
 <ProtectedRoute>
   <ProfilePage />
 </ProtectedRoute>
 
-// Custom redirect
-<ProtectedRoute redirectTo="/unauthorized">
+// With custom fallback
+<ProtectedRoute fallback={<Loading />}>
+  <Dashboard />
+</ProtectedRoute>
+
+// Disable Keycloak redirect (use /login page instead)
+<ProtectedRoute useKeycloakLogin={false}>
   <AdminPanel />
 </ProtectedRoute>
 ```
 
-## Auth Flow
+## Auth Flow (PKCE)
 
 ```
-1. App loads
-   └── AuthProvider checks localStorage for user
-       └── If found → set user state, isAuthenticated = true
-       └── If not → isAuthenticated = false
+1. User clicks "Login with Keycloak"
+   └── Generate PKCE verifier + challenge
+   └── Store verifier in sessionStorage
+   └── Redirect to Keycloak /auth endpoint
 
-2. User logs in
-   └── API call verifies credentials
-   └── login(user) called
-       └── Saves to localStorage
-       └── Updates context state
-       └── Components re-render
+2. User authenticates in Keycloak
+   └── Keycloak redirects to /auth/callback?code=xxx
 
-3. User logs out
-   └── logout() called
-       └── Removes from localStorage
-       └── Clears context state
-       └── Redirect to home
+3. Callback page handles response
+   └── Exchange code for tokens (with PKCE verifier)
+   └── Parse user info from ID token
+   └── Store tokens in localStorage
+   └── Update AuthContext state
+   └── Redirect to original URL
+
+4. App loads with existing tokens
+   └── AuthProvider checks localStorage
+   └── If tokens expired → refresh using refresh_token
+   └── Auto-refresh runs every 60 seconds
 ```
 
-## Usage in Apps
+## Auth Callback Page
 
-### App Layout (Provider Setup)
+Create `/auth/callback/page.tsx` in your app:
+
 ```typescript
-// apps/auth/src/app/layout.tsx
-import { AuthProvider } from "@repo/auth-lib";
+"use client";
+import { useEffect } from "react";
+import { useSearchParams } from "next/navigation";
+import { exchangeCodeForTokens, parseJwt, useAuth } from "@repo/auth-lib";
 
-export default function Layout({ children }) {
-  return (
-    <AuthProvider>
-      {children}
-    </AuthProvider>
-  );
-}
-```
+export default function AuthCallback() {
+  const searchParams = useSearchParams();
+  const { loginWithTokens } = useAuth();
 
-### Login Page
-```typescript
-// apps/auth/src/app/login/page.tsx
-import { useAuth } from "@repo/auth-lib";
-import { apiClient } from "@repo/api-client";
+  useEffect(() => {
+    const code = searchParams.get("code");
+    const state = searchParams.get("state");
 
-function LoginPage() {
-  const { login } = useAuth();
+    if (code) {
+      exchangeCodeForTokens(code).then(tokens => {
+        const user = parseJwt(tokens.id_token);
+        loginWithTokens({
+          accessToken: tokens.access_token,
+          refreshToken: tokens.refresh_token,
+          idToken: tokens.id_token,
+          expiresIn: tokens.expires_in,
+        }, user);
+        window.location.href = state || "/";
+      });
+    }
+  }, []);
 
-  const handleLogin = async (username: string) => {
-    const response = await apiClient.users.getByUsername(username);
-    login(response.data);
-    router.push("/");
-  };
-}
-```
-
-### Protected Content
-```typescript
-// apps/social/src/components/CreatePost.tsx
-import { useAuth } from "@repo/auth-lib";
-
-function CreatePost() {
-  const { user, isAuthenticated } = useAuth();
-
-  if (!isAuthenticated) {
-    return <p>Please login to create posts</p>;
-  }
-
-  // Show create post form with user.id
+  return <div>Completing sign in...</div>;
 }
 ```
 
@@ -189,35 +211,24 @@ function CreatePost() {
 
 ## Security Notes
 
-- Token/user stored in localStorage (not httpOnly cookie)
-- No JWT implementation - simple user object storage
-- For production: implement proper JWT with refresh tokens
-- Cross-tab sync via storage event listener (optional)
+- PKCE flow kullanılır (code_challenge + code_verifier)
+- Access token localStorage'da tutulur
+- Refresh token ile otomatik yenileme yapılır
+- Token expiry 60 saniye önceden kontrol edilir
+- Keycloak logout tüm session'ları temizler
 
-## Adding Features
+## Environment Variables
 
-### Remember Me
-```typescript
-const setUser = (user: User, remember: boolean) => {
-  const storage = remember ? localStorage : sessionStorage;
-  storage.setItem("auth_user", JSON.stringify(user));
-};
-```
-
-### Token Expiry
-```typescript
-interface StoredAuth {
-  user: User;
-  expiresAt: number;
-}
-
-const isExpired = (auth: StoredAuth) => Date.now() > auth.expiresAt;
-```
+| Variable | Description | Default |
+|----------|-------------|---------|
+| `NEXT_PUBLIC_KEYCLOAK_URL` | Keycloak base URL | http://localhost:8180 |
+| `NEXT_PUBLIC_KEYCLOAK_REALM` | Keycloak realm name | social-media |
+| `NEXT_PUBLIC_KEYCLOAK_CLIENT_ID` | Frontend client ID | social-media-frontend |
 
 ## Code Conventions
 
 - Context'ler `"use client"` directive kullanır
 - Hook'lar `use` prefix ile başlar
-- Storage metodları sync (localStorage sync API)
+- Token refresh async/await pattern
 - Null checks her yerde yapılır
 - TypeScript strict mode aktif
