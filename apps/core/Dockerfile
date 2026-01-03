@@ -20,6 +20,10 @@ COPY apps/core ./apps/core
 # Install dependencies
 RUN npm ci
 
+# Set service URLs for K8s deployment
+ENV AUTH_SERVICE_URL=http://auth:3001
+ENV SOCIAL_SERVICE_URL=http://social:3002
+
 # Build the core app
 RUN npm run build --filter=core
 
