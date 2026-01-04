@@ -1,57 +1,34 @@
 import { NextRequest, NextResponse } from "next/server";
 
-const AUTH_URL = process.env.AUTH_SERVICE_URL || "http://localhost:3001";
-const SOCIAL_URL = process.env.SOCIAL_SERVICE_URL || "http://localhost:3002";
+// For client-side routing, we use redirect to preserve JavaScript context
+const AUTH_CLIENT_URL = process.env.NEXT_PUBLIC_AUTH_URL || "http://localhost:3001";
+const SOCIAL_CLIENT_URL = process.env.NEXT_PUBLIC_SOCIAL_URL || "http://localhost:3002";
 
-export async function middleware(request: NextRequest) {
+export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
-  // Profile route - proxy to auth app
+  // Auth routes - redirect to auth app (preserves localStorage context)
   if (pathname === "/profile") {
-    const targetUrl = `${AUTH_URL}${pathname}`;
-    try {
-      const response = await fetch(targetUrl, {
-        method: request.method,
-        headers: request.headers,
-        body: request.method !== "GET" && request.method !== "HEAD" ? request.body : undefined,
-      });
-
-      const body = await response.text();
-      return new NextResponse(body, {
-        status: response.status,
-        statusText: response.statusText,
-        headers: response.headers,
-      });
-    } catch {
-      return NextResponse.json({ error: "Auth service unavailable" }, { status: 503 });
-    }
+    return NextResponse.redirect(new URL(pathname, AUTH_CLIENT_URL));
   }
 
-  // Social app routes
+  // Login and register - redirect to auth app
+  if (pathname === "/login" || pathname === "/register") {
+    const returnUrl = request.nextUrl.searchParams.get("returnUrl") || "/";
+    const authUrl = new URL(pathname, AUTH_CLIENT_URL);
+    authUrl.searchParams.set("returnUrl", returnUrl);
+    return NextResponse.redirect(authUrl);
+  }
+
+  // Social app routes - redirect to social app
   if (pathname === "/feed" || pathname === "/users") {
     const targetPath = pathname === "/feed" ? "/" : pathname;
-    const targetUrl = `${SOCIAL_URL}${targetPath}`;
-    try {
-      const response = await fetch(targetUrl, {
-        method: request.method,
-        headers: request.headers,
-        body: request.method !== "GET" && request.method !== "HEAD" ? request.body : undefined,
-      });
-
-      const body = await response.text();
-      return new NextResponse(body, {
-        status: response.status,
-        statusText: response.statusText,
-        headers: response.headers,
-      });
-    } catch {
-      return NextResponse.json({ error: "Social service unavailable" }, { status: 503 });
-    }
+    return NextResponse.redirect(new URL(targetPath, SOCIAL_CLIENT_URL));
   }
 
   return NextResponse.next();
 }
 
 export const config = {
-  matcher: ["/profile", "/feed", "/users"],
+  matcher: ["/profile", "/feed", "/users", "/login", "/register"],
 };

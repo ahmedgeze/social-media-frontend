@@ -61,7 +61,7 @@ function RegisterForm() {
         setSuccess(true);
         // Redirect to login after 2 seconds
         setTimeout(() => {
-          window.location.href = `/login?returnUrl=${encodeURIComponent(returnUrl)}`;
+          window.location.href = "/login";
         }, 2000);
       } else {
         setError(response.message || "Registration failed");
@@ -197,7 +197,7 @@ function RegisterForm() {
         <p className="text-gray-600 dark:text-gray-400 text-sm">
           Already have an account?{" "}
           <Link
-            href={`/login?returnUrl=${encodeURIComponent(returnUrl)}`}
+            href="/login"
             className="text-blue-500 hover:text-blue-600 font-medium"
           >
             Sign in

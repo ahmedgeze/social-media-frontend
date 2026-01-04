@@ -32,11 +32,9 @@ function LoginForm() {
     const token = getToken();
     const user = getStoredUser();
     if (token && user) {
-      window.location.href = returnUrl.startsWith("/")
-        ? `http://localhost:3000${returnUrl}`
-        : returnUrl;
+      window.location.href = "/profile";
     }
-  }, [returnUrl]);
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -73,11 +71,8 @@ function LoginForm() {
       setTokens(tokenBundle);
       setStoredUser(user);
 
-      // Redirect to core app
-      const redirectTo = returnUrl.startsWith("/")
-        ? `http://localhost:3000${returnUrl}`
-        : returnUrl;
-      window.location.href = redirectTo;
+      // Redirect to profile page (staying on auth app to preserve localStorage)
+      window.location.href = "/profile";
     } catch (err) {
       setError(err instanceof Error ? err.message : "Login failed");
     } finally {
@@ -128,7 +123,7 @@ function LoginForm() {
         <p className="text-gray-600 dark:text-gray-400 text-sm">
           Don&apos;t have an account?{" "}
           <Link
-            href={`/register?returnUrl=${encodeURIComponent(returnUrl)}`}
+            href="/register"
             className="text-blue-500 hover:text-blue-600 font-medium"
           >
             Sign up
