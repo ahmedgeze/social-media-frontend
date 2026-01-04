@@ -24,8 +24,8 @@ RUN mkdir -p ./apps/auth/public
 # Install dependencies
 RUN npm ci
 
-# Build with API URL pointing to backend service
-ENV NEXT_PUBLIC_API_URL=http://backend:8080
+# Build with API URL pointing to localhost (accessed via port-forward)
+ENV NEXT_PUBLIC_API_URL=http://localhost:8080
 RUN npm run build --filter=auth
 
 # Production stage
