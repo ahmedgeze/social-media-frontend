@@ -41,7 +41,6 @@ RUN addgroup -g 1001 -S nodejs && \
 # Copy built files
 COPY --from=builder /app/apps/core/.next/standalone ./
 COPY --from=builder /app/apps/core/.next/static ./apps/core/.next/static
-COPY --from=builder /app/apps/core/public ./apps/core/public
 
 USER nextjs
 
